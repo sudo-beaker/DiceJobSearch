@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: DiceJobSearch
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+    mcp:
+      client:
+        streamable-http:
+          connections:
+            dice-server:
+              url: https://mcp.dice.com
+              endpoint: /mcp
