@@ -11,3 +11,13 @@ spring:
             dice-server:
               url: https://mcp.dice.com
               endpoint: /mcp
+
+server:
+  port: 8080
+  servlet:
+    context-path: /jobsearch
+
+jobsearch:
+  default-query: "I am looking for a java software developer position that is either local to  Huntsville, AL or is fully remote. The job description should not contain hybrid or onsite. The position will require experience any of  java, spring boot, postgreSQL. It may contain Angular, it may contain Angular and React but it will not include React without the presence of Angular. If the position is in Huntsville then it must not require active security clearance. W2 Contract work is preferred, full-time and part-time work are acceptable. "
+  runner:
+    enabled: false

@@ -1,23 +1,19 @@
-package com.stromsland.dicejobsearch;
+package com.stromsland.dicejobsearch.service;
+ 
  
 import org.springframework.ai.chat.client.ChatClient;
- 
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
  
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
  
-@Component
-@ConditionalOnProperty(name = "jobsearch.runner.enabled", havingValue = "true", matchIfMissing = false)
-public class DiceJobSearchRunner implements CommandLineRunner {
+@Service
+public class JobSearchService {
  
     private final ChatClient chatClient;
-    private final ToolCallbackProvider mcpTools;
     private final RestTemplate restTemplate;
  
     private final String systemPrompt = """
@@ -31,32 +27,20 @@ public class DiceJobSearchRunner implements CommandLineRunner {
             3. Include the 'Dice Id' in your response for that listing.
             """;
  
-    public DiceJobSearchRunner(ChatClient.Builder chatClientBuilder, ToolCallbackProvider mcpTools) {
+    public JobSearchService(ChatClient.Builder chatClientBuilder, ToolCallbackProvider mcpTools) {
         this.restTemplate = new RestTemplate();
-        // Configure a chat client builder instance with the available tools
         this.chatClient = chatClientBuilder
                 .defaultSystem(systemPrompt)
                 .defaultToolCallbacks(mcpTools.getToolCallbacks())
                 .defaultTools(this)
                 .build();
-        this.mcpTools = mcpTools;
     }
  
-    @Override
-    public void run(String... args) throws Exception {
-        String userRequest = "I am looking for a java software developer position that is " +
-                "either local to  Huntsville, AL or is fully remote. The job description " +
-                "should not contain hybrid or onsite. The position will require experience " +
-                "any of  java, spring boot, postgreSQL. It may contain Angular, it may " +
-                "contain Angular and React but it will not include React without the presence " +
-                "of Angular. If the position is in Huntsville then it must not require active " +
-                "security clearance. W2 Contract work is preferred, full-time and part-time " +
-                "work are acceptable. ";
-        String response = chatClient.prompt()
-                .user(userRequest)
+    public String searchJobs(String query) {
+        return chatClient.prompt()
+                .user(query)
                 .call()
                 .content();
-        System.out.println(response);
     }
  
     @Tool(description = "Retrieves the 'Dice Id' from a Dice job details page URL")
