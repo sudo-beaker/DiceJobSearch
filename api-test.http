@@ -1,0 +1,5 @@
+### Search with a custom query
+GET http://localhost:8080/jobsearch/api?query=Java Developer in Huntsville
+
+### Search with default query (no query parameter)
+GET http://localhost:8080/api/search
