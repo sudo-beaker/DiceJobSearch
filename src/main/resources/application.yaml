@@ -11,13 +11,30 @@ spring:
             dice-server:
               url: https://mcp.dice.com
               endpoint: /mcp
-
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 server:
   port: 8080
   servlet:
     context-path: /jobsearch
 
 jobsearch:
-  default-query: "I am looking for a java software developer position that is either local to  Huntsville, AL or is fully remote. The job description should not contain hybrid or onsite. The position will require experience any of  java, spring boot, postgreSQL. It may contain Angular, it may contain Angular and React but it will not include React without the presence of Angular. If the position is in Huntsville then it must not require active security clearance. W2 Contract work is preferred, full-time and part-time work are acceptable. "
+  default-query: "I am looking for a java software developer position. It must be in Huntsville, AL OR remote. Positions
+   that are in  must not require active security clearance or active top secret security clearance in order to apply.
+   Positions in Huntsville may be onsite or hybrid or remote. Positions that are not in Huntsville must be fully remote. 
+   The position will require experience any of  java, spring boot, postgreSQL. It may contain Angular, it may contain 
+   Angular and React but it will not include React without the presence of Angular. W2 Contract work is preferred, 
+   full-time and part-time work are acceptable. "
   runner:
     enabled: false
+

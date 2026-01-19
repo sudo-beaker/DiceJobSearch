@@ -1,79 +1,35 @@
 package com.stromsland.dicejobsearch;
- 
-import org.springframework.ai.chat.client.ChatClient;
- 
-import org.springframework.ai.tool.ToolCallbackProvider;
-import org.springframework.ai.tool.annotation.Tool;
+
+import com.stromsland.dicejobsearch.model.JobListing;
+import com.stromsland.dicejobsearch.service.JobSearchService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
- 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
- 
+
+import java.util.List;
+
 @Component
-@ConditionalOnProperty(name = "jobsearch.runner.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(name = "jobsearch.runner.enabled", havingValue = "true")
 public class DiceJobSearchRunner implements CommandLineRunner {
- 
-    private final ChatClient chatClient;
-    private final ToolCallbackProvider mcpTools;
-    private final RestTemplate restTemplate;
- 
-    private final String systemPrompt = """
-            You are a job search assistant. When using the 'search_jobs' tool, if you specify the 'fields' parameter, you MUST only use the following allowed values:
-            'id', 'jobId', 'guid', 'summary', 'title', 'postedDate', 'modifiedDate', 'jobLocation.displayName', 'detailsPageUrl', 'salary', 'clientBrandId', 'companyPageUrl', 'companyLogoUrl', 'companyLogoUrlOptimized', 'positionId', 'companyName', 'employmentType', 'isHighlighted', 'score', 'easyApply', 'employerType', 'workFromHomeAvailability', 'workplaceTypes', 'isRemote', 'debug', 'jobMetadata', 'willingToSponsor'.
-            Do NOT use 'location' in the 'fields' parameter; use 'jobLocation.displayName' instead if you need location information in the fields.
-            
-            When providing job results:
-            1. Capture the response and the URL (detailsPageUrl) for the 1st listing.
-            2. Use the 'fetchDiceId' tool with that URL to retrieve the 'Dice Id'.
-            3. Include the 'Dice Id' in your response for that listing.
-            """;
- 
-    public DiceJobSearchRunner(ChatClient.Builder chatClientBuilder, ToolCallbackProvider mcpTools) {
-        this.restTemplate = new RestTemplate();
-        // Configure a chat client builder instance with the available tools
-        this.chatClient = chatClientBuilder
-                .defaultSystem(systemPrompt)
-                .defaultToolCallbacks(mcpTools.getToolCallbacks())
-                .defaultTools(this)
-                .build();
-        this.mcpTools = mcpTools;
+
+    private final JobSearchService jobSearchService;
+    private final String defaultQuery;
+
+    public DiceJobSearchRunner(JobSearchService jobSearchService,
+                               @Value("${jobsearch.default-query}") String defaultQuery) {
+        this.jobSearchService = jobSearchService;
+        this.defaultQuery = defaultQuery;
     }
- 
+
     @Override
-    public void run(String... args) throws Exception {
-        String userRequest = "I am looking for a java software developer position that is " +
-                "either local to  Huntsville, AL or is fully remote. The job description " +
-                "should not contain hybrid or onsite. The position will require experience " +
-                "any of  java, spring boot, postgreSQL. It may contain Angular, it may " +
-                "contain Angular and React but it will not include React without the presence " +
-                "of Angular. If the position is in Huntsville then it must not require active " +
-                "security clearance. W2 Contract work is preferred, full-time and part-time " +
-                "work are acceptable. ";
-        String response = chatClient.prompt()
-                .user(userRequest)
-                .call()
-                .content();
-        System.out.println(response);
-    }
- 
-    @Tool(description = "Retrieves the 'Dice Id' from a Dice job details page URL")
-    public String fetchDiceId(String url) {
-        try {
-            String html = restTemplate.getForObject(url, String.class);
-            if (html == null) return "Could not fetch page content";
-            
-            // Search for "Dice Id:" label and capture value to the right
-            Pattern pattern = Pattern.compile("Dice Id:\\s*<!--\\s*-->\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
-            Matcher matcher = pattern.matcher(html);
-            if (matcher.find()) {
-                return matcher.group(1).trim();
-            }
-            return "Dice Id not found on page";
-        } catch (Exception e) {
-            return "Error retrieving Dice Id: " + e.getMessage();
+    public void run(String... args) {
+        System.out.println("Running automated job search...");
+        List<JobListing> response = jobSearchService.searchJobs(defaultQuery);
+        System.out.println("--- Search Results ---");
+        for (JobListing listing : response) {
+            System.out.println(listing);
         }
+
     }
 }
