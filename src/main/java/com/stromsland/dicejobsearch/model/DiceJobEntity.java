@@ -51,6 +51,12 @@ public class DiceJobEntity {
     @Column(name = "dice_id")
     private String diceId;
 
+    @Column(nullable = false)
+    private boolean applied = false;
+
+    @Column(nullable = false)
+    private boolean rejected = false;
+
     // Default constructor required by JPA
     public DiceJobEntity() {}
 
@@ -93,4 +99,20 @@ public class DiceJobEntity {
 
     public String getDiceId() { return diceId; }
     public void setDiceId(String diceId) { this.diceId = diceId; }
+
+    public boolean isApplied() {
+        return applied;
+    }
+
+    public void setApplied(boolean applied) {
+        this.applied = applied;
+    }
+
+    public boolean isRejected() {
+        return rejected;
+    }
+
+    public void setRejected(boolean rejected) {
+        this.rejected = rejected;
+    }
 }

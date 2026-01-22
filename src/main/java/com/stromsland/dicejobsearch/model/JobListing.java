@@ -17,7 +17,9 @@ public record JobListing(
         String workplaceTypes,
         String postedDate,
         boolean easyApply,
-
+        boolean applied,
+        boolean rejected,
 
         String diceId
+
 ) {}

@@ -24,10 +24,11 @@ public class JobSearchService {
     private final RestTemplate restTemplate;
     // Use TypeReference to properly handle the List of Records
     private final BeanOutputConverter<List<JobListing>> outputConverter;
+    private final JobMapper jobMapper;
     private final DiceJobRepository diceJobRepository;
 
     private final String systemPrompt = """
-    You are a job search assistant. 
+    You are a job search assistant.
     
     WORKFLOW:
     1. Search for jobs using 'search_jobs' with the user's query.
@@ -41,7 +42,8 @@ public class JobSearchService {
     - Map 'employmentType' to 'employmentType'.
     """;
 
-    public JobSearchService(ChatClient.Builder chatClientBuilder, ToolCallbackProvider mcpTools, DiceJobRepository diceJobRepository) {
+    public JobSearchService(ChatClient.Builder chatClientBuilder, ToolCallbackProvider mcpTools, DiceJobRepository diceJobRepository, JobMapper jobMapper) {
+        this.jobMapper = jobMapper;
         this.diceJobRepository = diceJobRepository;
         this.restTemplate = new RestTemplate();
 
@@ -73,7 +75,13 @@ public class JobSearchService {
             diceJobRepository.saveAll(entities);
         }
 
-        return listings;
+        return getAllListings();
+    }
+
+    public List<JobListing> getAllListings() {
+        return diceJobRepository.findAllByOrderByPostedDateDesc().stream()
+                .map(jobMapper::toListing)
+                .toList();
     }
  
     @Tool(description = "Retrieves the 'Dice Id' from a Dice job details page URL")
